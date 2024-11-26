@@ -1,5 +1,3 @@
-
-
 const menuMobie = document.querySelector('.menu-mobile');
 const body = document.querySelector('body');
 const itemsAnimate = document.querySelectorAll('[data-animate]');

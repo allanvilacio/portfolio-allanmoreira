@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, jsonify
 from flask_wtf.csrf import CSRFProtect
-from time import sleep
 from decouple import config
 import smtplib
 from email.mime.text import MIMEText
@@ -8,29 +7,75 @@ from email.mime.multipart import MIMEMultipart
 
 
 
-server_smtp = 'smtp.gmail.com'
-port = 587 
-sender_email ='allanmoreiracontato@gmail.com'
+server_smtp = config('SERVER_SMPT')
+port = config('PORT')
+
+sender_email = config('SENDER_EMAIL')
 password =  config('EMAIL_PASSWORD')
 
 
-receive_email = "allan.vilacio@gmail.com, allan@acaiconcept.com"
-subject = '3 email teste portifolio'
-body_msg = """
-    <!DOCTYPE html>
-    <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>teste de email</title>
-    </head>
-    <body>
-        <h1>teste de email h1</h1>
-        <p>teste paragrafo</p>
-    </body>
-    </html>
-"""
+receive_email = config('RECEIVE_EMAIL')
 
+def make_msg(name, msg):
+    body_msg = f"""
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Resposta ao Contato</title>
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    color: #333;
+                    margin: 0;
+                    padding: 20px;
+                }}
+
+                .container {{
+                    max-width: 600px;
+                }}
+
+                p {{
+                    line-height: 1.5;
+                }}
+
+                i {{
+                    padding-left: 20px;
+                    display: block;
+                    width: 90%;
+                    color: #4d4d4d;
+                }}
+                a {{
+                    text-decoration: none;
+                    color: #333;
+                }}
+            </style>
+        </head>
+
+        <body>
+            <div class="container">
+                <h2>Obrigado pelo Seu Contato!</h2>
+                <p>Olá [Nome do Contato],</p>
+                <p>Obrigado por entrar em contato através do meu portfólio. Fico muito feliz em saber do seu interesse e estou
+                    animado para conversar mais sobre.</p>
+                <i>Lorem ipsum dolor sit amet consectetur adipisicing elit. Saepe quas temporibus minima aperiam vel amet quia,
+                    iste ipsa enim dolorum perferendis esse? Vel alias cumque, fuga at aperiam dicta maxime!</i>
+                <p>Eu retornarei a sua mensagem o mais breve possível. Enquanto isso, sinta-se à vontade para explorar mais
+                    sobre o meu trabalho e projetos no meu site.</p>
+                <p>Se a sua mensagem for urgente, por favor, entre em contato diretamente pelo telefone ou whatsapp
+                    <a href="https://api.whatsapp.com/send?phone=5582996320261&text=Ol%C3%A1%20Venho%20atrav%C3%A9s%20de%20seu%20portf%C3%B3lio." target="_blank">
+                        <strong>(082) 99632-0261</strong>.</p>
+                    </a>
+                <br>
+                <p>Atenciosamente,<br>Allan Moreira</p>
+            </div>
+        </body>
+
+        </html>
+        """
+    return body_msg
 
 
 app = Flask(__name__)
@@ -44,30 +89,30 @@ def index():
 @app.route('/send', methods=['POST'])
 def send():
 
-    #body = request.json
+    body = request.json
+    subject = f'Contato portifólio {body.get("name")}'
+    receive_email_cc = f"{receive_email}, {body.get('email')}"
 
     message = MIMEMultipart()
     message['From'] = sender_email
-    message['To'] = receive_email
+    message['To'] = receive_email_cc
     message['Subject'] = subject
-    message.attach(MIMEText(body_msg,"html"))
-
+    message.attach(MIMEText(make_msg(body.get("name"),body.get("msg")),"html"))
+    
     try:
         server =smtplib.SMTP(server_smtp, port)
         server.starttls()
-
         server.login(sender_email, password)
+        server.sendmail(sender_email, receive_email_cc.split(','), message.as_string())
+        msg = True
 
-        server.sendmail(sender_email, receive_email.split(','), message.as_string())
-        print('Email enviado com sucesso')
-    except Exception as e:
-        print(f'Houve um erro {e}')
+    except:
+        msg = False
+
     finally:
         server.quit()
-    
-    #sleep(5)
 
-    return jsonify({'msg':False})
+    return jsonify({'msg':msg})
 
 if __name__=='__main__':
-    app.run(debug = config('DEBUG', cast=bool))
+    app.run(debug = config('DEBUG', cast=bool),host='0.0.0.0', port=5000)
