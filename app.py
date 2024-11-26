@@ -8,7 +8,7 @@ from email.mime.multipart import MIMEMultipart
 
 
 server_smtp = config('SERVER_SMPT')
-port = config('PORT')
+port = config('PORT_EMAIL')
 
 sender_email = config('SENDER_EMAIL')
 password =  config('EMAIL_PASSWORD')
