@@ -101,10 +101,17 @@ def send():
     
     try:
         print('start server')
+        print(server_smtp, port)
+        print(sender_email, password)
+        print( receive_email_cc.split(','))
+        print( message.as_string())
         server =smtplib.SMTP(server_smtp, port)
         server.starttls()
+        print('1')
         server.login(sender_email, password)
+        print('2')
         server.sendmail(sender_email, receive_email_cc.split(','), message.as_string())
+        print('3')
         msg = True
 
     except Exception as ex:
