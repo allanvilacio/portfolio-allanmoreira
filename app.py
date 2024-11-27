@@ -100,13 +100,15 @@ def send():
     message.attach(MIMEText(make_msg(body.get("name"),body.get("msg")),"html"))
     
     try:
+        print('start server')
         server =smtplib.SMTP(server_smtp, port)
         server.starttls()
         server.login(sender_email, password)
         server.sendmail(sender_email, receive_email_cc.split(','), message.as_string())
         msg = True
 
-    except:
+    except Exception as ex:
+        print(ex)
         msg = False
 
     finally:
