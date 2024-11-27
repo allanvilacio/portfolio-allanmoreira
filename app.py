@@ -57,11 +57,10 @@ def make_msg(name, msg):
         <body>
             <div class="container">
                 <h2>Obrigado pelo Seu Contato!</h2>
-                <p>Olá [Nome do Contato],</p>
+                <p>Olá {name},</p>
                 <p>Obrigado por entrar em contato através do meu portfólio. Fico muito feliz em saber do seu interesse e estou
                     animado para conversar mais sobre.</p>
-                <i>Lorem ipsum dolor sit amet consectetur adipisicing elit. Saepe quas temporibus minima aperiam vel amet quia,
-                    iste ipsa enim dolorum perferendis esse? Vel alias cumque, fuga at aperiam dicta maxime!</i>
+                <i>{msg}</i>
                 <p>Eu retornarei a sua mensagem o mais breve possível. Enquanto isso, sinta-se à vontade para explorar mais
                     sobre o meu trabalho e projetos no meu site.</p>
                 <p>Se a sua mensagem for urgente, por favor, entre em contato diretamente pelo telefone ou whatsapp
@@ -100,18 +99,10 @@ def send():
     message.attach(MIMEText(make_msg(body.get("name"),body.get("msg")),"html"))
     
     try:
-        print('start server')
-        print(server_smtp, port)
-        print(sender_email, password)
-        print( receive_email_cc.split(','))
-        print( message.as_string())
         server =smtplib.SMTP(server_smtp, port)
         server.starttls()
-        print('1')
         server.login(sender_email, password)
-        print('2')
         server.sendmail(sender_email, receive_email_cc.split(','), message.as_string())
-        print('3')
         msg = True
 
     except Exception as ex:
@@ -119,7 +110,8 @@ def send():
         msg = False
 
     finally:
-        server.quit()
+        if server:
+            server.quit()
 
     return jsonify({'msg':msg})
 
